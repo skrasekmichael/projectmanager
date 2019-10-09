@@ -1,6 +1,9 @@
 {
 	"name": "projectmanager",
 	"publisher": "Skrasek",
+	"repository": {
+		"url": "https://github.com/skrasekmichael/projectmanager"
+	},
 	"displayName": "Project manager",
 	"description": "",
 	"version": "0.0.1",
