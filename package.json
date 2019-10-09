@@ -1,0 +1,151 @@
+{
+	"name": "projectmanager",
+	"publisher": "Skrasek",
+	"displayName": "Project manager",
+	"description": "",
+	"version": "0.0.1",
+	"engines": {
+		"vscode": "^1.38.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"activationEvents": [
+		"onCommand:projectmanager.config",
+		"onCommand:projectmanager.openProject",
+		"onCommand:projectmanager.createProject",
+		"onCommand:projectmanager.addLanguage",
+		"onCommand:projectmanager.removeLanguage",
+		"onCommand:projectmanager.createTemplate",
+		"onCommand:projectmanager.editTemplate",
+		"onCommand:projectmanager.deleteTemplate",
+		"onCommand:projectmanager.renameProject",
+		"onCommand:projectmanager.deleteProject",
+		"onView:nodeProjects"
+	],
+	"main": "./out/extension.js",
+	"contributes": {
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "view-project",
+					"title": "Project manager",
+					"icon": "media/icon.svg"
+				}
+			]
+		},
+		"views": {
+			"view-project": [
+				{
+					"id": "nodeProjects",
+					"name": "Projects"
+				}
+			]
+		},
+		"menus": {
+			"view/item/context": [
+				{
+					"command": "projectmanager.openProject",
+					"when": "view == nodeProjects && viewItem == project"
+				},
+				{
+					"command": "projectmanager.renameProject",
+					"when": "view == nodeProjects && viewItem == project",
+					"group": "inline"
+				},
+				{
+					"command": "projectmanager.renameProject",
+					"when": "view == nodeProjects && viewItem == project"
+				},
+				{
+					"command": "projectmanager.deleteProject",
+					"when": "view == nodeProjects && viewItem == project"
+				},
+				{
+					"command": "projectmanager.createProject",
+					"when": "view == nodeProjects && viewItem == projectFolder",
+					"group": "inline"
+				},
+				{
+					"command": "projectmanager.createProject",
+					"when": "view == nodeProjects && viewItem == projectFolder"
+				},
+				{
+					"command": "projectmanager.removeLanguage",
+					"when": "view == nodeProjects && viewItem == projectFolder"
+				}
+			]
+		},
+		"commands": [
+			{
+				"command": "projectmanager.config",
+				"title": "Project manager: Config"
+			},
+			{
+				"command": "projectmanager.createProject",
+				"title": "Project manager: New project",
+				"icon": {
+					"dark": "media/dark/create.svg",
+					"light": "media/light/create.svg"
+				}
+			},
+			{
+				"command": "projectmanager.renameProject",
+				"title": "Project manager: Rename project",
+				"icon": {
+					"dark": "media/dark/edit.svg",
+					"light": "media/light/edit.svg"
+				}
+			},
+			{
+				"command": "projectmanager.deleteProject",
+				"title": "Project manager: Delete project"
+			},
+			{
+				"command": "projectmanager.openProject",
+				"title": "Project manager: Open project"
+			},
+			{
+				"command": "projectmanager.addLanguage",
+				"title": "Project manager: Add language"
+			},
+			{
+				"command": "projectmanager.removeLanguage",
+				"title": "Project manager: Remove language"
+			},
+			{
+				"command": "projectmanager.createTemplate",
+				"title": "Project manager: New template"
+			},
+			{
+				"command": "projectmanager.editTemplate",
+				"title": "Project manager: Edit template"
+			},
+			{
+				"command": "projectmanager.deleteTemplate",
+				"title": "Project manager: Delete template"
+			}
+		]
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"watch": "tsc -watch -p ./",
+		"pretest": "npm run compile",
+		"test": "node ./out/test/runTest.js"
+	},
+	"devDependencies": {
+		"@types/glob": "^7.1.1",
+		"@types/mocha": "^5.2.6",
+		"@types/node": "^10.12.21",
+		"@types/vscode": "^1.38.0",
+		"glob": "^7.1.4",
+		"mocha": "^6.1.4",
+		"typescript": "^3.3.1",
+		"tslint": "^5.12.1",
+		"vscode-test": "^1.2.0"
+	},
+	"dependencies": {
+		"ncp": "^2.0.0"
+	}
+}
