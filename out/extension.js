@@ -46,7 +46,7 @@ function pickProject(config) {
                 if (folder === undefined) {
                     reject();
                 }
-                resolve(lang.path + "\\" + folder);
+                resolve(lang.path + "/" + folder);
             });
         });
     });
@@ -57,9 +57,9 @@ function activate(context) {
     if (!file.pathExists(root)) {
         file.createFolder(root);
     }
-    let config = new config_1.Config(root + "\\settings.json");
-    if (!file.pathExists(root + "\\templates")) {
-        file.createFolder(root + "\\templates");
+    let config = new config_1.Config(root + "/settings.json");
+    if (!file.pathExists(root + "/templates")) {
+        file.createFolder(root + "/templates");
     }
     let provider = new data_1.ProjectNodeProvider(config);
     config.onChangeSettings = () => provider.refresh();
@@ -78,7 +78,7 @@ function activate(context) {
                 vscode.window.showErrorMessage("Selected folder is not project. ");
                 return;
             }
-            let folder = source + "\\..\\";
+            let folder = source + "/../";
             let open = false;
             if (vscode.workspace.rootPath) {
                 open = (path.parse(vscode.workspace.rootPath).dir === path.parse(source).dir);
@@ -229,7 +229,7 @@ function activate(context) {
     vscode.commands.registerCommand("projectmanager.createProject", (arg) => {
         function createProject(lang) {
             function check(data) {
-                if (file.pathExists(lang.path + "\\" + data)) {
+                if (file.pathExists(lang.path + "/" + data)) {
                     vscode.window.showInformationMessage("Project with name '" + data + "' already exist. ");
                     return false;
                 }
@@ -237,13 +237,13 @@ function activate(context) {
             }
             function create(type = "") {
                 showInput({ prompt: "Enter project name" }, check).then(name => {
-                    if (file.pathExists(root + "\\templates\\" + lang.id + "\\" + type)) {
-                        file.copyFolder(root + "\\templates\\" + lang.id + "\\" + type, lang.path + "\\" + name);
+                    if (file.pathExists(root + "/templates/" + lang.id + "/" + type)) {
+                        file.copyFolder(root + "/templates/" + lang.id + "/" + type, lang.path + "/" + name);
                     }
                     else {
-                        file.createFolder(lang.path + "\\" + name);
+                        file.createFolder(lang.path + "/" + name);
                     }
-                    openFolder(lang.path + "\\" + name);
+                    openFolder(lang.path + "/" + name);
                     provider.refresh();
                 });
             }

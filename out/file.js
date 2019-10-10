@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const vscode = require("vscode");
 const fs = require("fs");
 function renameFolder(path, name) {
-    let newPath = path + "\\..\\" + name;
+    let newPath = path + "/../" + name;
     copyFolder(path, newPath);
     deleteFolder(path);
 }
@@ -15,7 +15,7 @@ function createFile(path, content) {
 }
 exports.createFile = createFile;
 function openFile(path) {
-    createFile(path, "{\n\"langs\": []\n}");
+    createFile(path, "{\n\t\"langs\": []\n}");
     vscode.workspace.openTextDocument(path).then(doc => {
         vscode.window.showTextDocument(doc);
     });
@@ -24,14 +24,14 @@ exports.openFile = openFile;
 function getModifyDateFolder(path) {
     let date;
     getFiles(path).forEach(file => {
-        let stat = fs.statSync(path + "\\" + file);
+        let stat = fs.statSync(path + "/" + file);
         let mtime = stat.mtime;
         if (date < mtime || date === undefined) {
             date = mtime;
         }
     });
     getFolders(path).forEach(folder => {
-        let mtime = getModifyDateFolder(path + "\\" + folder);
+        let mtime = getModifyDateFolder(path + "/" + folder);
         if (date < mtime || date === undefined) {
             date = mtime;
         }
@@ -57,8 +57,8 @@ function createFolder(dir) {
 exports.createFolder = createFolder;
 function deleteFolder(path) {
     if (pathExists(path)) {
-        getFiles(path).forEach(file => fs.unlinkSync(path + "\\" + file));
-        getFolders(path).forEach(folder => deleteFolder(path + "\\" + folder));
+        getFiles(path).forEach(file => fs.unlinkSync(path + "/" + file));
+        getFolders(path).forEach(folder => deleteFolder(path + "/" + folder));
         fs.rmdirSync(path);
     }
 }
@@ -69,8 +69,8 @@ function copyFile(source, dest) {
 exports.copyFile = copyFile;
 function copyFolder(source, dest) {
     createFolder(dest);
-    getFolders(source).forEach(dir => copyFolder(source + "\\" + dir, dest + "\\" + dir));
-    getFiles(source).forEach(file => copyFile(source + "\\" + file, dest + "\\" + file));
+    getFolders(source).forEach(dir => copyFolder(source + "/" + dir, dest + "/" + dir));
+    getFiles(source).forEach(file => copyFile(source + "/" + file, dest + "/" + file));
 }
 exports.copyFolder = copyFolder;
 function getFolders(source) {

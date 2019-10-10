@@ -41,17 +41,17 @@ class ProjectNodeProvider {
     getProjects(source) {
         let dirs = file_1.getFolders(source);
         let elements = new Array(dirs.length);
-        elements.push(new ProjectItem(".", "current folder", vscode.TreeItemCollapsibleState.None, "project", source + "\\.", {
+        elements.push(new ProjectItem(".", "current folder", vscode.TreeItemCollapsibleState.None, "project", source + "/.", {
             command: "projectmanager.openProject",
             title: "",
             arguments: [source]
         }));
         dirs.forEach(element => {
-            let date = file_1.getModifyDateFolder(source + "\\" + element);
-            elements.push(new ProjectItem(element, (date ? date.toLocaleString() : ""), vscode.TreeItemCollapsibleState.None, "project", source + "\\" + element, {
+            let date = file_1.getModifyDateFolder(source + "/" + element);
+            elements.push(new ProjectItem(element, (date ? date.toLocaleString() : ""), vscode.TreeItemCollapsibleState.None, "project", source + "/" + element, {
                 command: "projectmanager.openProject",
                 title: "",
-                arguments: [source + "\\" + element]
+                arguments: [source + "/" + element]
             }));
         });
         return elements;
