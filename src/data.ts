@@ -58,7 +58,7 @@ export class ProjectNodeProvider implements vscode.TreeDataProvider<ProjectItem>
             "current folder",
             vscode.TreeItemCollapsibleState.None,
             "project",
-            source + "\\.",
+            source + "/.",
             {
                 command: "projectmanager.openProject",
                 title: "",
@@ -67,17 +67,17 @@ export class ProjectNodeProvider implements vscode.TreeDataProvider<ProjectItem>
         ));
 
         dirs.forEach(element => {
-            let date = getModifyDateFolder(source + "\\" + element);
+            let date = getModifyDateFolder(source + "/" + element);
             elements.push(new ProjectItem(
                 element, 
                 (date ? date.toLocaleString() : ""),
                 vscode.TreeItemCollapsibleState.None, 
                 "project",
-                source + "\\" + element,
+                source + "/" + element,
                 {
                     command: "projectmanager.openProject",
                     title: "",
-                    arguments: [source + "\\" + element]
+                    arguments: [source + "/" + element]
                 },
             ));
         });

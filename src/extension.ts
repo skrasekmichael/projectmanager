@@ -50,7 +50,7 @@ function pickProject(config: Config): Thenable<string> {
 					reject();
 				}
 
-				resolve(lang.path + "\\" + folder);
+				resolve(lang.path + "/" + folder);
 			});
 		});
 	});
@@ -64,9 +64,9 @@ export function activate(context: vscode.ExtensionContext) {
 		file.createFolder(root);
 	}
 
-	let config = new Config(root + "\\settings.json");
-	if (!file.pathExists(root + "\\templates")) {
-		file.createFolder(root + "\\templates");
+	let config = new Config(root + "/settings.json");
+	if (!file.pathExists(root + "/templates")) {
+		file.createFolder(root + "/templates");
 	}
 
 	let provider = new ProjectNodeProvider(config);
@@ -87,7 +87,7 @@ export function activate(context: vscode.ExtensionContext) {
 				return;
 			}
 			
-			let folder = source + "\\..\\"; 
+			let folder = source + "/../"; 
 			let open = false;
 			if (vscode.workspace.rootPath) {
 				open = (path.parse(vscode.workspace.rootPath).dir === path.parse(source).dir);
@@ -250,7 +250,7 @@ export function activate(context: vscode.ExtensionContext) {
 	vscode.commands.registerCommand("projectmanager.createProject", (arg: ProjectItem | undefined) => {
 		function createProject(lang: JSONLang) {
 			function check(data: string | undefined): boolean {
-				if (file.pathExists(lang.path + "\\" + data)) {
+				if (file.pathExists(lang.path + "/" + data)) {
 					vscode.window.showInformationMessage("Project with name '" + data + "' already exist. ");
 					return false;
 				}
@@ -259,13 +259,13 @@ export function activate(context: vscode.ExtensionContext) {
 
 			function create(type: string = "") {
 				showInput({ prompt: "Enter project name" }, check).then(name => {
-					if (file.pathExists(root + "\\templates\\" + lang.id + "\\" + type)) {
-						file.copyFolder(root + "\\templates\\" + lang.id + "\\" + type, lang.path + "\\" + name);
+					if (file.pathExists(root + "/templates/" + lang.id + "/" + type)) {
+						file.copyFolder(root + "/templates/" + lang.id + "/" + type, lang.path + "/" + name);
 					} else {
-						file.createFolder(lang.path + "\\" + name);
+						file.createFolder(lang.path + "/" + name);
 					}
 
-					openFolder(lang.path + "\\" + name);
+					openFolder(lang.path + "/" + name);
 					provider.refresh();
 				});
 			}
