@@ -1,17 +1,27 @@
 {
 	"name": "projectmanager",
 	"publisher": "Skrasek",
-	"repository": {
-		"url": "https://github.com/skrasekmichael/projectmanager"
-	},
+	"author": "Michael Skrasek",
+	"icon": "resources/icon.png",
 	"displayName": "Project manager",
-	"description": "",
+	"description": "Extension for managing projects.",
 	"version": "1.0.2",
 	"engines": {
 		"vscode": "^1.38.0"
 	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/skrasekmichael/projectmanager"
+	},
+	"bugs": {
+		"url": "https://github.com/skrasekmichael/projectmanager/issues"
+	},
 	"categories": [
 		"Other"
+	],
+	"keywords": [
+		"project",
+		"manager"
 	],
 	"activationEvents": [
 		"onCommand:projectmanager.config",
