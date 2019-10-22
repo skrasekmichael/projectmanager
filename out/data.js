@@ -20,9 +20,9 @@ class ProjectNodeProvider {
             return Promise.resolve([]);
         }
         if (element) {
-            let lang = langs.filter((val) => val.id === element.id);
-            if (lang.length > 0) {
-                return Promise.resolve(this.getProjects(lang[0].path));
+            let lang = langs.find((val) => val.id === element.id);
+            if (lang) {
+                return Promise.resolve(this.getProjects(lang.id, lang.path));
             }
             else {
                 return Promise.resolve([]);
@@ -38,20 +38,20 @@ class ProjectNodeProvider {
             return Promise.resolve(items);
         }
     }
-    getProjects(source) {
+    getProjects(id, source) {
         let dirs = file_1.getFolders(source);
         let elements = new Array(dirs.length);
         elements.push(new ProjectItem(".", "current folder", vscode.TreeItemCollapsibleState.None, "project", source + "/.", {
             command: "projectmanager.openProject",
             title: "",
-            arguments: [source]
+            arguments: [source, id]
         }));
         dirs.forEach(element => {
             let date = file_1.getModifyDateFolder(source + "/" + element);
             elements.push(new ProjectItem(element, (date ? date.toLocaleString() : ""), vscode.TreeItemCollapsibleState.None, "project", source + "/" + element, {
                 command: "projectmanager.openProject",
                 title: "",
-                arguments: [source + "/" + element]
+                arguments: [source + "/" + element, id]
             }));
         });
         return elements;

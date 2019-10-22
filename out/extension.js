@@ -5,51 +5,21 @@ const data_1 = require("./data");
 const config_1 = require("./config");
 const file = require("./file");
 const path = require("path");
-function openFolder(path) {
-    let uri = vscode.Uri.file(path);
-    vscode.commands.executeCommand("vscode.openFolder", uri).then(() => {
-        vscode.window.showInformationMessage("Folder " + path + " has been opened. ");
-    });
-}
-function showInput(input, check) {
-    return new Promise((resolve, reject) => {
-        vscode.window.showInputBox(input).then(val => {
-            if (val === undefined) {
-                reject();
-            }
-            if (check(val)) {
-                resolve(val);
-            }
-            else {
-                showInput(input, check).then(e => resolve(e));
-            }
-        });
-    });
-}
-function pickLanguage(config) {
-    let langs = config.getProjects().langs;
-    return new Promise((resolve, reject) => {
-        vscode.window.showQuickPick(langs.map(lang => lang.name)).then(langName => {
-            if (langName === undefined) {
-                reject();
-            }
-            let lang = langs.find(lang => lang.name === langName);
-            resolve(lang);
-        });
-    });
-}
-function pickProject(config) {
-    return new Promise((resolve, reject) => {
-        pickLanguage(config).then(lang => {
-            let folders = ["."].concat((file.getFolders(lang.path)));
-            vscode.window.showQuickPick(folders).then(folder => {
-                if (folder === undefined) {
-                    reject();
-                }
-                resolve(lang.path + "/" + folder);
-            });
-        });
-    });
+const window_1 = require("./window");
+function runTask(command, folder) {
+    let name = path.basename(folder);
+    command = command.split("{workspaceName}").join(name);
+    command = command.split("{workspaceFolder}").join(folder);
+    try {
+        let type = "shell";
+        let task = new vscode.Task({ type: type }, vscode.workspace.getWorkspaceFolder(vscode.Uri.file(folder)), "Project manager", //terminal name
+        type, //source
+        new vscode.ShellExecution(command, { cwd: folder }));
+        vscode.tasks.executeTask(task);
+    }
+    catch (err) {
+        vscode.window.showInformationMessage(err);
+    }
 }
 function activate(context) {
     console.log("Project manager is activated. ");
@@ -57,19 +27,27 @@ function activate(context) {
     if (!file.pathExists(root)) {
         file.createFolder(root);
     }
-    let config = new config_1.Config(root + "/settings.json");
+    let config = new config_1.Config(root, context.extensionPath);
     if (!file.pathExists(root + "/templates")) {
         file.createFolder(root + "/templates");
     }
+    let window = new window_1.Window(config);
     let provider = new data_1.ProjectNodeProvider(config);
     config.onChangeSettings = () => provider.refresh();
     vscode.window.registerTreeDataProvider("nodeProjects", provider);
-    vscode.commands.registerCommand("projectmanager.openProject", (arg) => {
-        if (arg) {
-            openFolder(arg);
+    vscode.commands.registerCommand("projectmanager.openProject", (arg1, arg2) => {
+        if (arg1 && arg2) {
+            config.editProject({
+                lang: arg2,
+                path: arg1
+            });
+            window.openFolder(arg1);
         }
         else {
-            pickProject(config).then(path => openFolder(path));
+            window.pickProject().then(project => {
+                config.editProject(project);
+                window.openFolder(project.path);
+            });
         }
     });
     vscode.commands.registerCommand("projectmanager.renameProject", (arg) => {
@@ -90,10 +68,10 @@ function activate(context) {
                 }
                 return true;
             }
-            showInput({ prompt: "Enter new project name" }, check).then(name => {
+            window.showInput({ prompt: "Enter new project name" }, check).then(name => {
                 file.renameFolder(source, name);
                 if (open) {
-                    openFolder(folder + name);
+                    window.openFolder(folder + name);
                 }
                 provider.refresh();
             });
@@ -102,7 +80,7 @@ function activate(context) {
             rename(arg.tag);
         }
         else {
-            pickProject(config).then(project => rename(project));
+            window.pickProject().then(project => rename(project.path));
         }
     });
     vscode.commands.registerCommand("projectmanager.deleteProject", (arg) => {
@@ -112,6 +90,7 @@ function activate(context) {
                 return;
             }
             file.deleteFolder(source);
+            config.removeProject(source);
             provider.refresh();
             vscode.window.showInformationMessage("Project has been deleted. ");
         }
@@ -119,7 +98,7 @@ function activate(context) {
             deleteProject(arg.tag);
         }
         else {
-            pickProject(config).then(path => deleteProject(path));
+            window.pickProject().then(project => deleteProject(project.path));
         }
     });
     vscode.commands.registerCommand("projectmanager.config", () => file.openFile(config.path));
@@ -134,7 +113,7 @@ function activate(context) {
             remove(arg.tag);
         }
         else {
-            pickLanguage(config).then(lang => remove(lang));
+            window.pickLanguage().then(lang => remove(lang));
         }
     });
     vscode.commands.registerCommand("projectmanager.addLanguage", () => {
@@ -146,8 +125,8 @@ function activate(context) {
             }
             return true;
         }
-        showInput({ prompt: "Enter language name" }, check).then(name => {
-            let id = name.toLowerCase().replace(" ", "_");
+        window.showInput({ prompt: "Enter language name" }, check).then(name => {
+            let id = name.toLowerCase().split(" ").join("_");
             let openFolder = {
                 canSelectMany: false,
                 canSelectFiles: false,
@@ -167,25 +146,27 @@ function activate(context) {
         });
     });
     vscode.commands.registerCommand("projectmanager.deleteTemplate", () => {
-        pickLanguage(config).then(lang => {
-            vscode.window.showQuickPick(lang.types.map(type => type.name)).then(typeName => {
-                let type = lang.types.find(type => type.name === typeName);
-                config.deleteAppType(lang, type);
-                config.save();
-                file.deleteFolder(root + "/templates/" + lang.id + "/" + type.id);
+        window.pickLanguage().then(lang => {
+            vscode.window.showQuickPick(lang.types.map(type => type.name), { placeHolder: "Pick template to delete" }).then(typeName => {
+                if (typeName) {
+                    let type = lang.types.find(type => type.name === typeName);
+                    config.deleteTemplate(lang, type);
+                    config.save();
+                    file.deleteFolder(root + "/templates/" + lang.id + "/" + type.id);
+                }
             });
         });
     });
     vscode.commands.registerCommand("projectmanager.editTemplate", () => {
-        pickLanguage(config).then(lang => {
+        window.pickLanguage().then(lang => {
             if (lang.types) {
                 if (lang.types.length === 1) {
-                    openFolder(root + "/templates/" + lang.id + "/" + lang.types[0].id);
+                    window.openFolder(root + "/templates/" + lang.id + "/" + lang.types[0].id);
                 }
                 else {
-                    vscode.window.showQuickPick(lang.types.map(type => type.name)).then(typeName => {
+                    vscode.window.showQuickPick(lang.types.map(type => type.name), { placeHolder: "Pick template to edit" }).then(typeName => {
                         let type = lang.types.find(type => type.name === typeName);
-                        openFolder(root + "/templates/" + lang.id + "/" + type.id);
+                        window.openFolder(root + "/templates/" + lang.id + "/" + type.id);
                     });
                 }
             }
@@ -195,9 +176,9 @@ function activate(context) {
         });
     });
     vscode.commands.registerCommand("projectmanager.createTemplate", () => {
-        pickLanguage(config).then(lang => {
+        window.pickLanguage().then(lang => {
             function check(data) {
-                let typeId = data.toLowerCase().replace(" ", "_");
+                let typeId = data.toLowerCase().split(" ").join("_");
                 let dirName = typeId;
                 if (data === "") {
                     dirName = "default";
@@ -208,8 +189,8 @@ function activate(context) {
                 }
                 return true;
             }
-            showInput({ prompt: "Enter template name (let empty to default)" }, check).then(template => {
-                let typeId = template.toLowerCase().replace(" ", "_");
+            window.showInput({ prompt: "Enter template name (let empty to default)" }, check).then(template => {
+                let typeId = template.toLowerCase().split(" ").join("_");
                 let name = template;
                 if (template === "") {
                     typeId = "default";
@@ -217,12 +198,13 @@ function activate(context) {
                 }
                 let type = {
                     id: typeId,
-                    name: name
+                    name: name,
+                    copyFolder: true
                 };
-                config.addAppType(lang.id, type);
+                config.addTemplate(lang.id, type);
                 config.save();
                 file.createFolder(root + "/templates/" + lang.id + "/" + typeId);
-                openFolder(root + "/templates/" + lang.id + "/" + typeId);
+                window.openFolder(root + "/templates/" + lang.id + "/" + typeId);
             });
         });
     });
@@ -235,27 +217,46 @@ function activate(context) {
                 }
                 return true;
             }
-            function create(type = "") {
-                showInput({ prompt: "Enter project name" }, check).then(name => {
-                    if (file.pathExists(root + "/templates/" + lang.id + "/" + type)) {
-                        file.copyFolder(root + "/templates/" + lang.id + "/" + type, lang.path + "/" + name);
+            function create(type = undefined) {
+                window.showInput({ prompt: "Enter project name" }, check).then(name => {
+                    if (type) {
+                        if ((type.copyFolder === undefined || type.copyFolder) && file.pathExists(root + "/templates/" + lang.id + "/" + type.id)) {
+                            file.copyFolder(root + "/templates/" + lang.id + "/" + type.id, lang.path + "/" + name);
+                        }
+                        else {
+                            file.createFolder(lang.path + "/" + name);
+                        }
+                        let source = lang.path + "/" + name;
+                        if (type.commands) {
+                            type.commands.forEach(command => {
+                                runTask(command.script, command.folder ? command.folder : source);
+                            });
+                        }
                     }
                     else {
                         file.createFolder(lang.path + "/" + name);
                     }
-                    openFolder(lang.path + "/" + name);
+                    config.editProject({
+                        lang: lang.id,
+                        path: lang.path + "/" + name
+                    });
                     provider.refresh();
+                    vscode.window.showInformationMessage("Open project?", "YES", "NO").then(val => {
+                        if (val === "YES") {
+                            window.openFolder(lang.path + "/" + name);
+                        }
+                    });
                 });
             }
             if (lang.types) {
                 if (lang.types.length > 1) {
                     vscode.window.showQuickPick(lang.types.map(type => type.name)).then(typeName => {
-                        let type = lang.types.filter(type => type.name === typeName)[0];
-                        create(type.id);
+                        let type = lang.types.find(type => type.name === typeName);
+                        create(type);
                     });
                 }
                 else {
-                    create(lang.types[0].id);
+                    create(lang.types[0]);
                 }
             }
             else {
@@ -266,7 +267,7 @@ function activate(context) {
             createProject(arg.tag);
         }
         else {
-            pickLanguage(config).then(lang => createProject(lang));
+            window.pickLanguage().then(lang => createProject(lang));
         }
     });
 }

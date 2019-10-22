@@ -1,2 +1,5 @@
 node_modules
-projectmanager-0.0.1.vsix
+templates
+settings.json
+lastProjects.json
+*.vsix

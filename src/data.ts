@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
-import { Config, JSONLang } from "./config";
+import { Config } from "./config";
+import * as JSON from "./json";
 import { getFolders, getModifyDateFolder } from "./file";
 
 export class ProjectNodeProvider implements vscode.TreeDataProvider<ProjectItem> {
@@ -18,16 +19,16 @@ export class ProjectNodeProvider implements vscode.TreeDataProvider<ProjectItem>
 	}
 
 	getChildren(element?: ProjectItem): Thenable<ProjectItem[]> {
-        let langs : JSONLang[] = this.config.getProjects().langs;
+        let langs : JSON.ILang[] = this.config.getProjects().langs;
 
 		if (langs.length === 0) {
 			return Promise.resolve([]);
 		}
 
 		if (element) {
-            let lang = langs.filter((val: JSONLang) => val.id === element!!.id);
-            if (lang.length > 0) {
-                return Promise.resolve(this.getProjects(lang[0].path));
+            let lang = langs.find((val: JSON.ILang) => val.id === element!.id);
+            if (lang) {
+                return Promise.resolve(this.getProjects(lang.id, lang.path));
             } else {
                 return Promise.resolve([]);
             }
@@ -49,7 +50,7 @@ export class ProjectNodeProvider implements vscode.TreeDataProvider<ProjectItem>
 		}
     }
 
-    private getProjects(source: string) : ProjectItem[] {
+    private getProjects(id: string, source: string) : ProjectItem[] {
         let dirs = getFolders(source);
         let elements: ProjectItem[] = new Array(dirs.length);
 
@@ -62,7 +63,7 @@ export class ProjectNodeProvider implements vscode.TreeDataProvider<ProjectItem>
             {
                 command: "projectmanager.openProject",
                 title: "",
-                arguments: [source]
+                arguments: [source, id]
             }
         ));
 
@@ -77,7 +78,7 @@ export class ProjectNodeProvider implements vscode.TreeDataProvider<ProjectItem>
                 {
                     command: "projectmanager.openProject",
                     title: "",
-                    arguments: [source + "/" + element]
+                    arguments: [source + "/" + element, id]
                 },
             ));
         });

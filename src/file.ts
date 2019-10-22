@@ -27,14 +27,14 @@ export function getModifyDateFolder(path: string): Date | undefined {
         let stat = fs.statSync(path + "/" + file);
         let mtime = stat.mtime;
 
-        if (date!! < mtime || date === undefined) {
+        if (date! < mtime || date === undefined) {
             date = mtime;
         }
     });
 
     getFolders(path).forEach(folder => {
         let mtime = getModifyDateFolder(path + "/" + folder);
-        if (date!! < mtime!! || date === undefined) {
+        if (date! < mtime! || date === undefined) {
             date = mtime;
         }
     });

@@ -1,0 +1,73 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+	"title": "JSON scheme for settings.json",
+	"required": ["langs"],
+	"properties": {
+		"langs": {
+			"type": "array",
+			"description": "Array of languages/folders. ",
+			"items": {
+				"type": "object",
+				"description": "Language",
+				"required": ["id", "name", "path"],
+				"properties": {
+					"id": {
+						"type": "string",
+						"description": "Language identifier. "
+					},
+					"name": {
+						"type": "string",
+						"description": "Name of language. "
+					},
+					"path": {
+						"type": "string",
+						"description": "Path to folder with projects. "
+					},
+					"types": {
+						"type": "array",
+						"description": "Array of templates. ",
+						"items": {
+							"type": "object",
+							"description": "Template for create new project. ",
+							"required": ["id", "name"],
+							"properties": {
+								"id": {
+									"type": "string",
+									"description": "Template identifier. "
+								},
+								"name": {
+									"type": "string",
+									"description": "Name of template. "
+								},
+								"copyFolder": {
+									"type": "boolean",
+									"default": true,
+									"description": "True - Copy folder as new project.\nFalse - Create new project with command. "
+								},
+								"commands": {
+									"type": "array",
+									"description": "Array of commands. ",
+									"items": {
+										"type": "object",
+										"description": "Command for create new project. (ex. npm)",
+										"required": ["script"],
+										"properties": {
+											"script": {
+												"type": "string",
+												"description": "Shell script. "
+											},
+											"folder": {
+												"type": "string",
+												"description": "Current working directory for script, let empty to current workspace. "
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
