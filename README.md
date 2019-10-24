@@ -4,6 +4,9 @@ Extension for managing folders for project and rendering templates for different
 
 ![Tree](./resources/tree.png)
 
+Manually changing settings: <br>
+![JSON](./resources/jsonschema.png)
+
 ## Commands
 
 - Open configuration file
