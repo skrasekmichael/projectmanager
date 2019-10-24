@@ -2,6 +2,12 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const vscode = require("vscode");
 const fs = require("fs");
+function comparePaths(path1, path2) {
+    let a = path1.toLocaleLowerCase().split("\\").join("/");
+    let b = path2.toLocaleLowerCase().split("\\").join("/");
+    return a === b;
+}
+exports.comparePaths = comparePaths;
 function renameFolder(path, name) {
     let newPath = path + "/../" + name;
     copyFolder(path, newPath);

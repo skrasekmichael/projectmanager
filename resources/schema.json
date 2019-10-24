@@ -3,6 +3,16 @@
 	"title": "JSON scheme for settings.json",
 	"required": ["langs"],
 	"properties": {
+		"lastProjects": {
+			"type": "boolean",
+			"default": true,
+			"description": "True - display last work project in pick dialog. (default True)"
+		},
+		"lastProjectsCount": {
+			"type": "integer",
+			"default": 5,
+			"description": "Count of displayed projects in pick dialog. (default 5)"
+		},
 		"langs": {
 			"type": "array",
 			"description": "Array of languages/folders. ",

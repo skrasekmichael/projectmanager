@@ -2,6 +2,7 @@ import * as JSON from "./json";
 import * as vscode from "vscode";
 import { Config } from "./config";
 import * as file from "./file";
+import * as path from "path";
 
 interface Data 
 {
@@ -37,23 +38,18 @@ export class Window {
 		let langs = this.config.getProjects().langs;
 
 		return new Promise<Data>((resolve, reject) => {
-			vscode.window.showQuickPick(
-				items.concat(langs.map(lang => ({ label: lang.name } as vscode.QuickPickItem))),
-				{ 
-					canPickMany: false,
-					placeHolder: "Pick project",
-				}
-			).then(langName => {
-				if (langName === undefined) {
-					reject();
-				}
-
-				if (langName!.description === "last work") {
-					let project = this.config.lastProjects!.projects.find(project => project.path.toLowerCase() === langName!.label.toLowerCase());
-					resolve({ data: project, type: 0 } as Data);
+			items = items.concat(langs.map(lang => ({ label: lang.name } as vscode.QuickPickItem)));
+			vscode.window.showQuickPick(items, { placeHolder: "Pick project" }).then(item => {
+				if (item) {
+					if (item.description) {
+						let project = this.config.lastProjects!.projects.find(project => file.comparePaths(project.path, item.detail!));
+						resolve({ data: project, type: 0 } as Data);
+					} else {
+						let lang = langs.find(lang => lang.name === item.label);
+						resolve({ data: lang, type: 1 } as Data);
+					}
 				} else {
-					let lang = langs.find(lang => lang.name === langName!.label);
-					resolve({ data: lang, type: 1 } as Data);
+					reject();
 				}
 			});
 		});
@@ -68,14 +64,17 @@ export class Window {
 	public pickProject(): Thenable<JSON.IProject> {
 		let items: vscode.QuickPickItem[] = [];
 
-		this.config.lastProjects!.projects.forEach(project => {
-			let label = project.path[0].toUpperCase() + project.path.slice(1);
-			items.push({
-				label: label,
-				alwaysShow: true,
-				description: "last work"
+		if (!this.config.settings!.lastProjects || this.config.settings!.lastProjects!) {
+			this.config.lastProjects!.projects.reverse().forEach(project => {
+				let label = project.path[0].toUpperCase() + project.path.slice(1);
+				items.push({
+					label: path.basename(label),
+					alwaysShow: true,
+					description: "last work in " + project.lang,
+					detail: label
+				});
 			});
-		});
+		}
 
 		return new Promise<JSON.IProject>((resolve, reject) => {
 			this.pick(items).then(obj => {

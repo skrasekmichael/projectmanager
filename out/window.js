@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const vscode = require("vscode");
 const file = require("./file");
+const path = require("path");
 class Window {
     constructor(config) {
         this.config = config;
@@ -28,20 +29,20 @@ class Window {
     pick(items) {
         let langs = this.config.getProjects().langs;
         return new Promise((resolve, reject) => {
-            vscode.window.showQuickPick(items.concat(langs.map(lang => ({ label: lang.name }))), {
-                canPickMany: false,
-                placeHolder: "Pick project",
-            }).then(langName => {
-                if (langName === undefined) {
-                    reject();
-                }
-                if (langName.description === "last work") {
-                    let project = this.config.lastProjects.projects.find(project => project.path.toLowerCase() === langName.label.toLowerCase());
-                    resolve({ data: project, type: 0 });
+            items = items.concat(langs.map(lang => ({ label: lang.name })));
+            vscode.window.showQuickPick(items, { placeHolder: "Pick project" }).then(item => {
+                if (item) {
+                    if (item.description) {
+                        let project = this.config.lastProjects.projects.find(project => file.comparePaths(project.path, item.detail));
+                        resolve({ data: project, type: 0 });
+                    }
+                    else {
+                        let lang = langs.find(lang => lang.name === item.label);
+                        resolve({ data: lang, type: 1 });
+                    }
                 }
                 else {
-                    let lang = langs.find(lang => lang.name === langName.label);
-                    resolve({ data: lang, type: 1 });
+                    reject();
                 }
             });
         });
@@ -53,14 +54,17 @@ class Window {
     }
     pickProject() {
         let items = [];
-        this.config.lastProjects.projects.forEach(project => {
-            let label = project.path[0].toUpperCase() + project.path.slice(1);
-            items.push({
-                label: label,
-                alwaysShow: true,
-                description: "last work"
+        if (!this.config.settings.lastProjects || this.config.settings.lastProjects) {
+            this.config.lastProjects.projects.reverse().forEach(project => {
+                let label = project.path[0].toUpperCase() + project.path.slice(1);
+                items.push({
+                    label: path.basename(label),
+                    alwaysShow: true,
+                    description: "last work in " + project.lang,
+                    detail: label
+                });
             });
-        });
+        }
         return new Promise((resolve, reject) => {
             this.pick(items).then(obj => {
                 if (obj.type === 0) {

@@ -9,6 +9,8 @@ export interface IProject {
 
 export interface ISettings {
     $schema: string;
+    lastProjects?: boolean;
+    lastProjectsCount?: number;
     langs: ILang[];
 }
 

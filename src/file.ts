@@ -1,6 +1,12 @@
 import * as vscode from "vscode";
 import * as fs from "fs";
 
+export function comparePaths(path1: string, path2: string) {
+    let a = path1.toLocaleLowerCase().split("\\").join("/");
+    let b = path2.toLocaleLowerCase().split("\\").join("/");
+    return a === b;
+}
+
 export function renameFolder(path: string, name: string) {
     let newPath = path + "/../" + name;
     copyFolder(path, newPath);

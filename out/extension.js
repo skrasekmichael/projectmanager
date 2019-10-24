@@ -23,7 +23,7 @@ function runTask(command, folder) {
 }
 function activate(context) {
     console.log("Project manager is activated. ");
-    let root = context.globalStoragePath;
+    let root = context.globalStoragePath.split("\\").join("/");
     if (!file.pathExists(root)) {
         file.createFolder(root);
     }
@@ -137,7 +137,7 @@ function activate(context) {
                 config.addLang({
                     id: id,
                     name: name,
-                    path: path[0].fsPath,
+                    path: path[0].path.slice(1),
                     types: undefined
                 });
                 config.save();
