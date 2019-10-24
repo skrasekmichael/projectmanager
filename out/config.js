@@ -24,10 +24,8 @@ class Config {
     load() {
         try {
             this.settings = JSON.parse(fs.readFileSync(this.path, "utf8"));
-            if (this.settings.$schema === undefined) {
-                this.settings.$schema = "file:" + this.ext + "/resources/schema.json";
-                this.save();
-            }
+            this.settings.$schema = "file:" + this.ext + "/resources/schema.json";
+            this.save();
             if (file_1.pathExists(this.projects)) {
                 this.lastProjects = JSON.parse(fs.readFileSync(this.projects, "utf8"));
                 this.lastProjects.projects = this.lastProjects.projects.filter(project => file_1.pathExists(project.path));
@@ -55,8 +53,8 @@ class Config {
     }
     delLastProjects() {
         let len = this.settings.lastProjectsCount ? this.settings.lastProjectsCount : 5;
-        for (let i = 0; i < this.lastProjects.projects.length - len; i++) {
-            this.lastProjects.projects.pop();
+        if (this.lastProjects.projects.length > len) {
+            this.lastProjects.projects = this.lastProjects.projects.slice(this.lastProjects.projects.length - len);
         }
         this.saveLastProjects();
     }

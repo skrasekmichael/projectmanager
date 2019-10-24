@@ -55,7 +55,8 @@ class Window {
     pickProject() {
         let items = [];
         if (!this.config.settings.lastProjects || this.config.settings.lastProjects) {
-            this.config.lastProjects.projects.reverse().forEach(project => {
+            for (let i = this.config.lastProjects.projects.length - 1; i >= 0; i--) {
+                let project = this.config.lastProjects.projects[i];
                 let label = project.path[0].toUpperCase() + project.path.slice(1);
                 items.push({
                     label: path.basename(label),
@@ -63,7 +64,7 @@ class Window {
                     description: "last work in " + project.lang,
                     detail: label
                 });
-            });
+            }
         }
         return new Promise((resolve, reject) => {
             this.pick(items).then(obj => {
