@@ -159,6 +159,7 @@
 		"vscode-test": "^1.2.0"
 	},
 	"dependencies": {
+		"gitignore-parser": "0.0.2",
 		"ncp": "^2.0.0"
 	}
 }

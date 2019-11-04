@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { Config } from "./config";
 import * as JSON from "./json";
-import { getFolders, getModifyDateFolder } from "./file";
+import { getFolders, getLastModifyDate } from "./file";
 
 export class ProjectNodeProvider implements vscode.TreeDataProvider<ProjectItem> {
 
@@ -68,7 +68,7 @@ export class ProjectNodeProvider implements vscode.TreeDataProvider<ProjectItem>
         ));
 
         dirs.forEach(element => {
-            let date = getModifyDateFolder(source + "/" + element);
+            let date = getLastModifyDate(source + "/" + element);
             elements.push(new ProjectItem(
                 element, 
                 (date ? date.toLocaleString() : ""),

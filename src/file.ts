@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import * as fs from "fs";
+import { Ignore } from "./ignore";
 
 export function comparePaths(path1: string, path2: string) {
     let a = path1.toLocaleLowerCase().split("\\").join("/");
@@ -26,21 +27,38 @@ export function openFile(path: string) {
     });
 }
 
-export function getModifyDateFolder(path: string): Date | undefined {
-    let date: Date | undefined;
+function getAllFolders(root: string, path: string, ignore: Ignore): string[] {
+    let prefix = path.substr(root.length);
+    let folders = getFolders(path).map(folder => prefix + "/" + folder);
+    folders = ignore.filter(folders);
+    folders.forEach(folder => {
+        folders.concat(getAllFolders(root, root + folder, ignore));
+    });
+    return folders;
+}
 
-    getFiles(path).forEach(file => {
+function getAllFiles(root: string, folders: string[]): string[] {
+    let allfiles: string[] = [];
+    folders.forEach(folder => {
+        let files = getFiles(root + folder).map(file => folder + "/" + file);
+        allfiles = allfiles.concat(files);
+    });
+    return allfiles;
+}
+
+export function getLastModifyDate(path: string): Date | undefined {
+    let date: Date | undefined;
+    let ignore = new Ignore(path);
+
+    let folders = [""].concat(getAllFolders(path, path, ignore));
+    let files = getAllFiles(path, folders);
+    files = ignore.filter(files);
+
+    files.forEach(file => {
         let stat = fs.statSync(path + "/" + file);
         let mtime = stat.mtime;
 
         if (date! < mtime || date === undefined) {
-            date = mtime;
-        }
-    });
-
-    getFolders(path).forEach(folder => {
-        let mtime = getModifyDateFolder(path + "/" + folder);
-        if (date! < mtime! || date === undefined) {
             date = mtime;
         }
     });

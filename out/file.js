@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const vscode = require("vscode");
 const fs = require("fs");
+const ignore_1 = require("./ignore");
 function comparePaths(path1, path2) {
     let a = path1.toLocaleLowerCase().split("\\").join("/");
     let b = path2.toLocaleLowerCase().split("\\").join("/");
@@ -27,24 +28,39 @@ function openFile(path) {
     });
 }
 exports.openFile = openFile;
-function getModifyDateFolder(path) {
+function getAllFolders(root, path, ignore) {
+    let prefix = path.substr(root.length);
+    let folders = getFolders(path).map(folder => prefix + "/" + folder);
+    folders = ignore.filter(folders);
+    folders.forEach(folder => {
+        folders.concat(getAllFolders(root, root + folder, ignore));
+    });
+    return folders;
+}
+function getAllFiles(root, folders) {
+    let allfiles = [];
+    folders.forEach(folder => {
+        let files = getFiles(root + folder).map(file => folder + "/" + file);
+        allfiles = allfiles.concat(files);
+    });
+    return allfiles;
+}
+function getLastModifyDate(path) {
     let date;
-    getFiles(path).forEach(file => {
+    let ignore = new ignore_1.Ignore(path);
+    let folders = [""].concat(getAllFolders(path, path, ignore));
+    let files = getAllFiles(path, folders);
+    files = ignore.filter(files);
+    files.forEach(file => {
         let stat = fs.statSync(path + "/" + file);
         let mtime = stat.mtime;
         if (date < mtime || date === undefined) {
             date = mtime;
         }
     });
-    getFolders(path).forEach(folder => {
-        let mtime = getModifyDateFolder(path + "/" + folder);
-        if (date < mtime || date === undefined) {
-            date = mtime;
-        }
-    });
     return date;
 }
-exports.getModifyDateFolder = getModifyDateFolder;
+exports.getLastModifyDate = getLastModifyDate;
 function pathExists(path) {
     try {
         fs.accessSync(path);

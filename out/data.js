@@ -47,7 +47,7 @@ class ProjectNodeProvider {
             arguments: [source, id]
         }));
         dirs.forEach(element => {
-            let date = file_1.getModifyDateFolder(source + "/" + element);
+            let date = file_1.getLastModifyDate(source + "/" + element);
             elements.push(new ProjectItem(element, (date ? date.toLocaleString() : ""), vscode.TreeItemCollapsibleState.None, "project", source + "/" + element, {
                 command: "projectmanager.openProject",
                 title: "",
